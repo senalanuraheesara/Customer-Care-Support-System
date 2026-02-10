@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SupportLink</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                    radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 70%, rgba(0, 191, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+            animation: gradientShift 20s ease infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.8; transform: scale(1.1) rotate(180deg); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            background: rgba(15, 15, 25, 0.7);
+            backdrop-filter: blur(30px) saturate(180%);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 80px rgba(138, 43, 226, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+            animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        h1 {
+            text-align: center;
+            padding: 1.8rem 2rem 2rem;
+            color: #ffffff;
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff 0%, #8a2be2 50%, #00bfff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .admin-dashboard {
+            flex: 1;
+            max-width: 1400px;
+            margin: 2.5rem auto;
+            padding: 0 2rem;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard-header {
+            background: rgba(15, 15, 25, 0.6);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(138, 43, 226, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            margin-bottom: 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: cardEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+        }
+
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #8a2be2 0%, #00bfff 100%);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .dashboard-header h2 {
+            font-size: 2.2rem;
+            color: #ffffff;
+            margin-bottom: 0.8rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .dashboard-header p {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 1.1rem;
+        }
+
+        .table-container {
+            background: rgba(15, 15, 25, 0.6);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(138, 43, 226, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: cardEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: transparent;
+        }
+
+        thead {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.3) 0%, rgba(0, 191, 255, 0.3) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        thead th {
+            color: #ffffff;
+            padding: 1.8rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(138, 43, 226, 0.3);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody td {
+            padding: 1.5rem 1.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+        }
+
+        .user-id {
+            font-weight: 800;
+            background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1rem;
+        }
+
+        .username {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .role-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid;
+        }
+
+        .role-customer {
+            background: rgba(72, 187, 120, 0.15);
+            color: #9ae6b4;
+            border-color: rgba(72, 187, 120, 0.3);
+        }
+
+        .role-agent {
+            background: rgba(237, 137, 54, 0.15);
+            color: #f6ad55;
+            border-color: rgba(237, 137, 54, 0.3);
+        }
+
+        .role-admin {
+            background: rgba(245, 101, 101, 0.15);
+            color: #fc8181;
+            border-color: rgba(245, 101, 101, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .btn {
+            padding: 0.7rem 1.3rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: skewX(-20deg);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.5);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(245, 101, 101, 0.3);
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(245, 101, 101, 0.5);
+        }
+
+        .btn-delete[disabled] {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.4);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-delete[disabled]:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-delete[disabled]::before {
+            display: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: rgba(15, 15, 25, 0.6);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(138, 43, 226, 0.2);
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+            filter: drop-shadow(0 4px 12px rgba(138, 43, 226, 0.3));
+        }
+
+        .empty-state h3 {
+            font-size: 1.8rem;
+            color: #ffffff;
+            margin-bottom: 0.8rem;
+            font-weight: 800;
+        }
+
+        .empty-state p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+
+        .decorative-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        .circle-1 {
+            width: 500px;
+            height: 500px;
+            top: -200px;
+            right: -200px;
+            animation-delay: 0s;
+        }
+
+        .circle-2 {
+            width: 400px;
+            height: 400px;
+            bottom: -150px;
+            left: -150px;
+            animation-delay: 5s;
+        }
+
+        footer {
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            padding: 2rem;
+            margin-top: auto;
+            border-top: 1px solid rgba(138, 43, 226, 0.2);
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #8a2be2 30%, #00bfff 70%, transparent);
+        }
+
+        footer p {
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+                padding: 1.5rem;
+            }
+
+            .admin-dashboard {
+                padding: 0 1rem;
+            }
+
+            .dashboard-header {
+                padding: 2rem 1.5rem;
+            }
+
+            .dashboard-header h2 {
+                font-size: 1.8rem;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 700px;
+            }
+
+            thead th,
+            tbody td {
+                padding: 1.2rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .dashboard-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .empty-state {
+                padding: 4rem 1.5rem;
+            }
+
+            .empty-state-icon {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>⚡ Admin Dashboard</h1>
+</header>
+
+<section class="admin-dashboard">
+    <div class="decorative-circle circle-1"></div>
+    <div class="decorative-circle circle-2"></div>
+
+    <div class="dashboard-header">
+        <h2>👥 User Management</h2>
+        <p>Manage all system users, their roles, and permissions</p>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Sample data - this would be dynamically generated -->
+            <tr>
+                <td class="user-id">#001</td>
+                <td class="username">john_doe</td>
+                <td><span class="role-badge role-customer">Customer</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-edit">✏️ Edit</button>
+                        <button class="btn btn-delete" onclick="confirmDelete('john_doe')">🗑️ Delete</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="user-id">#002</td>
+                <td class="username">jane_smith</td>
+                <td><span class="role-badge role-agent">Agent</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-edit">✏️ Edit</button>
+                        <button class="btn btn-delete" onclick="confirmDelete('jane_smith')">🗑️ Delete</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="user-id">#003</td>
+                <td class="username">admin_user</td>
+                <td><span class="role-badge role-admin">Admin</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-edit">✏️ Edit</button>
+                        <button class="btn btn-delete" disabled title="Cannot delete admin user">🔒 Protected</button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2025 SupportLink. All Rights Reserved.</p>
+</footer>
+
+<script>
+    function confirmDelete(username) {
+        if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+            // Here you would make an API call to delete the user
+            alert(`User "${username}" would be deleted. (This is a demo)`);
+        }
+    }
+
+    // Disable delete button for protected users
+    document.addEventListener('DOMContentLoaded', function() {
+        const protectedButtons = document.querySelectorAll('.btn-delete[disabled]');
+        protectedButtons.forEach(button => {
+            button.style.opacity = '0.5';
+            button.style.cursor = 'not-allowed';
+            button.onclick = null;
+        });
+    });
+</script>
+</body>
+</html>
