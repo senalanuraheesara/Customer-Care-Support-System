@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${isEdit ? 'Edit FAQ' : 'Add New FAQ'} + ' - Agent Dashboard'">FAQ Form - Agent Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0f;
+      min-height: 100vh;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+              radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 70%, rgba(0, 191, 255, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+      animation: gradientShift 20s ease infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes gradientShift {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+
+      50% {
+        opacity: 0.8;
+        transform: scale(1.1) rotate(180deg);
+      }
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+              linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      background: rgba(15, 15, 25, 0.7);
+      backdrop-filter: blur(30px) saturate(180%);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 80px rgba(138, 43, 226, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+      animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .navbar {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.2rem 2rem;
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar li a {
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 0.9rem 1.8rem;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar li a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: -1;
+      border-radius: 14px;
+    }
+
+    .navbar li a:hover::before {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    .navbar li a:hover {
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(138, 43, 226, 0.4);
+      border-color: rgba(138, 43, 226, 0.5);
+    }
+
+    h1 {
+      text-align: center;
+      padding: 1.8rem 2rem 2rem;
+      color: #ffffff;
+      font-size: 2.8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffffff 0%, #8a2be2 50%, #00bfff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+      animation: fadeIn 1s ease-out 0.3s both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 2.5rem auto;
+      padding: 0 2rem 3rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .decorative-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(30px, -30px);
+      }
+    }
+
+    .circle-1 {
+      width: 500px;
+      height: 500px;
+      top: -200px;
+      right: -200px;
+      animation-delay: 0s;
+    }
+
+    .circle-2 {
+      width: 400px;
+      height: 400px;
+      bottom: -150px;
+      left: -150px;
+      animation-delay: 5s;
+    }
+
+    .form-card {
+      background: rgba(15, 15, 25, 0.6);
+      backdrop-filter: blur(30px);
+      border-radius: 28px;
+      padding: 3.5rem 3rem;
+      box-shadow:
+              0 30px 90px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(138, 43, 226, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+      animation: cardEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+    }
+
+    @keyframes cardEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #8a2be2 0%, #00bfff 100%);
+      box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+    }
+
+    .form-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(138, 43, 226, 0.08) 0%, transparent 70%);
+      animation: pulseRotate 15s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulseRotate {
+
+      0%,
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 0.6;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.7rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+    }
+
+    .required {
+      color: #fc8181;
+      font-weight: 800;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 1.2rem 1.3rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+      backdrop-filter: blur(10px);
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #8a2be2;
+      box-shadow:
+              0 0 0 4px rgba(138, 43, 226, 0.15),
+              0 8px 24px rgba(138, 43, 226, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 3rem;
+    }
+
+    select option {
+      background: #1a1a2e;
+      color: #ffffff;
+      padding: 0.5rem;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .category-input-group {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .category-input-group select {
+      flex: 1;
+    }
+
+    .category-input-group input[type="text"] {
+      flex: 1;
+      display: none;
+    }
+
+    .category-input-group.custom-category input[type="text"] {
+      display: block !important;
+    }
+
+    .category-input-group.custom-category select {
+      display: none !important;
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      font-family: inherit;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+      color: white;
+      box-shadow:
+              0 15px 40px rgba(138, 43, 226, 0.4),
+              0 0 60px rgba(0, 191, 255, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: skewX(-20deg);
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow:
+              0 20px 50px rgba(138, 43, 226, 0.6),
+              0 0 80px rgba(0, 191, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-toggle {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      font-size: 0.9rem;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 8px 20px rgba(72, 187, 120, 0.3);
+    }
+
+    .btn-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(72, 187, 120, 0.5);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .error-message {
+      color: #fc8181;
+      font-size: 0.875rem;
+      margin-top: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(245, 101, 101, 0.15);
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(245, 101, 101, 0.3);
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    .form-help {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 0.7rem;
+      line-height: 1.5;
+    }
+
+    .character-counter {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-align: right;
+      margin-top: 0.7rem;
+      font-weight: 600;
+    }
+
+    .character-counter.warning {
+      color: #fbbf24;
+    }
+
+    .character-counter.error {
+      color: #fc8181;
+    }
+
+    @media (max-width: 768px) {
+      .navbar ul {
+        flex-direction: column;
+        gap: 0.8rem;
+        width: 100%;
+      }
+
+      .navbar li {
+        width: 100%;
+      }
+
+      .navbar li a {
+        width: 100%;
+        justify-content: center;
+      }
+
+      h1 {
+        font-size: 2rem;
+        padding: 1.5rem;
+      }
+
+      .container {
+        padding: 0 1rem 2rem;
+      }
+
+      .form-card {
+        padding: 2.5rem 2rem;
+        border-radius: 24px;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .category-input-group {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+      }
+
+      .category-input-group .btn-toggle {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .form-card {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <nav class="navbar">
+    <ul>
+
+      <li><a href="/agent/dashboard">📞 Dashboard</a></li>
+      <li><a href="/agent/tickets">📋 View Tickets</a></li>
+      <li><a href="/agent/faq">❓ Manage FAQ</a></li>
+      <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+  </nav>
+  <h1 th:text="${isEdit ? '✏️ Edit FAQ Article' : '➕ Add New FAQ Article'}">Add New FAQ Article</h1>
+</header>
+
+<div class="container">
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+
+  <div class="form-card">
+    <form th:action="${isEdit ? '/agent/faq/edit/' + faq.id : '/agent/faq/add'}" method="post"
+          th:object="${faq}">
+
+      <!-- Category Field -->
+      <div class="form-group">
+        <label for="category">Category <span class="required">*</span></label>
+        <div class="category-input-group" id="categoryGroup">
+          <select id="categorySelect" name="categorySelect">
+            <option value="">Select existing category...</option>
+            <option th:each="category : ${categories}" th:value="${category}" th:text="${category}"
+                    th:selected="${faq.category == category}"></option>
+            <option value="custom">+ Create new category</option>
+          </select>
+          <input type="text" id="category" name="category" th:field="*{category}"
+                 placeholder="Enter new category name..." maxlength="100">
+          <button type="button" class="btn btn-toggle" onclick="toggleCategoryInput()">🔄 Toggle</button>
+        </div>
+        <div class="form-help">Choose an existing category or create a new one to organize your FAQ
+          articles.</div>
+        <div th:if="${#fields.hasErrors('category')}" class="error-message">
+          ⚠️ <span th:errors="*{category}">Category error</span>
+        </div>
+      </div>
+
+      <!-- Question Field -->
+      <div class="form-group">
+        <label for="question">Question <span class="required">*</span></label>
+        <input type="text" id="question" name="question" th:field="*{question}"
+               placeholder="What question does this FAQ answer?" maxlength="500"
+               oninput="updateCharacterCount('question', 500)">
+        <div id="questionCounter" class="character-counter">0 / 500 characters</div>
+        <div th:if="${#fields.hasErrors('question')}" class="error-message">
+          ⚠️ <span th:errors="*{question}">Question error</span>
+        </div>
+      </div>
+
+      <!-- Answer Field -->
+      <div class="form-group">
+        <label for="answer">Answer <span class="required">*</span></label>
+        <textarea id="answer" name="answer" th:field="*{answer}"
+                  placeholder="Provide a comprehensive answer to the question..."
+                  oninput="updateCharacterCount('answer', 2000)"></textarea>
+        <div id="answerCounter" class="character-counter">0 / 2000 characters</div>
+        <div class="form-help">Provide a clear, helpful answer. You can use line breaks for better
+          formatting.</div>
+        <div th:if="${#fields.hasErrors('answer')}" class="error-message">
+          ⚠️ <span th:errors="*{answer}">Answer error</span>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <a href="/agent/faq" class="btn btn-secondary">↩️ Cancel</a>
+        <button type="submit" class="btn btn-primary"
+                th:text="${isEdit ? '💾 Update FAQ' : '➕ Create FAQ'}">
+          Create FAQ
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Initialize the form
+  document.addEventListener('DOMContentLoaded', function () {
+    // Set initial category state
+    const categoryField = document.getElementById('category');
+    const categorySelect = document.getElementById('categorySelect');
+    const categoryGroup = document.getElementById('categoryGroup');
+
+    console.log('Form initialized, category value:', categoryField.value);
+
+    // If there's an existing category value that's not in the dropdown, show custom input
+    if (categoryField.value && !categorySelect.querySelector(`option[value="${categoryField.value}"]`)) {
+      categoryGroup.classList.add('custom-category');
+      categorySelect.value = 'custom';
+    }
+
+    // Initialize character counters
+    updateCharacterCount('question', 500);
+    updateCharacterCount('answer', 2000);
+
+    // Add event listener to category select
+    categorySelect.addEventListener('change', function () {
+      console.log('Select changed via event listener:', this.value);
+      handleCategoryChange();
+    });
+  });
+
+  function handleCategoryChange() {
+    const select = document.getElementById('categorySelect');
+    const input = document.getElementById('category');
+    const group = document.getElementById('categoryGroup');
+
+    console.log('Category changed to:', select.value);
+
+    if (select.value === 'custom') {
+      group.classList.add('custom-category');
+      input.value = '';
+      setTimeout(() => input.focus(), 100);
+    } else if (select.value) {
+      group.classList.remove('custom-category');
+      input.value = select.value;
+    } else {
+      group.classList.remove('custom-category');
+      input.value = '';
+    }
+  }
+
+  function toggleCategoryInput() {
+    const group = document.getElementById('categoryGroup');
+    const input = document.getElementById('category');
+    const select = document.getElementById('categorySelect');
+
+    console.log('Toggle clicked, current state:', group.classList.contains('custom-category'));
+
+    if (group.classList.contains('custom-category')) {
+      // Switch to select mode
+      group.classList.remove('custom-category');
+      if (select.querySelector(`option[value="${input.value}"]`)) {
+        select.value = input.value;
+      } else {
+        select.value = '';
+        input.value = '';
+      }
+    } else {
+      // Switch to custom input mode
+      group.classList.add('custom-category');
+      select.value = 'custom';
+      setTimeout(() => input.focus(), 100);
+    }
+  }
+
+  function updateCharacterCount(fieldId, maxLength) {
+    const field = document.getElementById(fieldId);
+    const counter = document.getElementById(fieldId + 'Counter');
+    const currentLength = field.value.length;
+
+    counter.textContent = `${currentLength} / ${maxLength} characters`;
+
+    // Update counter color based on usage
+    counter.classList.remove('warning', 'error');
+    if (currentLength > maxLength * 0.9) {
+      counter.classList.add('error');
+    } else if (currentLength > maxLength * 0.75) {
+      counter.classList.add('warning');
+    }
+  }
+
+  // Form validation
+  document.querySelector('form').addEventListener('submit', function (e) {
+    const category = document.getElementById('category').value.trim();
+    const question = document.getElementById('question').value.trim();
+    const answer = document.getElementById('answer').value.trim();
+
+    if (!category || !question || !answer) {
+      e.preventDefault();
+      alert('⚠️ Please fill in all required fields.');
+      return;
+    }
+
+    if (question.length > 500) {
+      e.preventDefault();
+      alert('⚠️ Question cannot exceed 500 characters.');
+      return;
+    }
+
+    if (answer.length > 2000) {
+      e.preventDefault();
+      alert('⚠️ Answer cannot exceed 2000 characters.');
+      return;
+    }
+  });
+</script>
+</body>
+
+</html>
