@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent - View Tickets</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0f;
+      min-height: 100vh;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+              radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 70%, rgba(0, 191, 255, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+      animation: gradientShift 20s ease infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes gradientShift {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+
+      50% {
+        opacity: 0.8;
+        transform: scale(1.1) rotate(180deg);
+      }
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+              linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      background: rgba(15, 15, 25, 0.7);
+      backdrop-filter: blur(30px) saturate(180%);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 80px rgba(138, 43, 226, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+      animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .navbar {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.2rem 2rem;
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar li a {
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 0.9rem 1.8rem;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar li a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: -1;
+      border-radius: 14px;
+    }
+
+    .navbar li a:hover::before {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    .navbar li a:hover {
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(138, 43, 226, 0.4);
+      border-color: rgba(138, 43, 226, 0.5);
+    }
+
+    h1 {
+      text-align: center;
+      padding: 1.8rem 2rem 2rem;
+      color: #ffffff;
+      font-size: 2.8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffffff 0%, #8a2be2 50%, #00bfff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+      animation: fadeIn 1s ease-out 0.3s both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    section {
+      max-width: 1600px;
+      margin: 2.5rem auto;
+      padding: 0 2rem 3rem;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+
+    section>p {
+      text-align: center;
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 2.5rem;
+      font-weight: 500;
+      animation: fadeIn 1s ease-out 0.5s both;
+    }
+
+    .table-container {
+      background: rgba(15, 15, 25, 0.6);
+      backdrop-filter: blur(30px);
+      border-radius: 28px;
+      padding: 2.5rem;
+      box-shadow:
+              0 30px 90px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(138, 43, 226, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      overflow-x: auto;
+      position: relative;
+      animation: cardEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+    }
+
+    @keyframes cardEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .table-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #8a2be2 0%, #00bfff 100%);
+      box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+      border-radius: 28px 28px 0 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: none;
+    }
+
+    thead {
+      background: linear-gradient(135deg, rgba(138, 43, 226, 0.3) 0%, rgba(0, 191, 255, 0.3) 100%);
+      backdrop-filter: blur(10px);
+    }
+
+    th {
+      color: #ffffff;
+      padding: 1.2rem 1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: none;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    thead tr th:first-child {
+      border-top-left-radius: 12px;
+    }
+
+    thead tr th:last-child {
+      border-top-right-radius: 12px;
+    }
+
+    td {
+      padding: 1.2rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.9rem;
+    }
+
+    tbody tr {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    tbody tr:hover {
+      background: rgba(138, 43, 226, 0.1);
+      transform: translateX(3px);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    select {
+      padding: 0.7rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      min-width: 140px;
+    }
+
+    select option {
+      background: #1a1a2e;
+      color: #ffffff;
+    }
+
+    select:hover {
+      border-color: #8a2be2;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #8a2be2;
+      box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #ffffff;
+      font-family: inherit;
+      resize: vertical;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      min-height: 90px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+
+    textarea::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    textarea:hover {
+      border-color: #8a2be2;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #8a2be2;
+      box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    button {
+      background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+      margin-top: 0.7rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: skewX(-20deg);
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(138, 43, 226, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: rgba(160, 174, 192, 0.3);
+      cursor: not-allowed;
+      box-shadow: none;
+      opacity: 0.5;
+    }
+
+    button:disabled::before {
+      display: none;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.6rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    form {
+      margin-top: 0.7rem;
+    }
+
+    .response-section {
+      background: rgba(72, 187, 120, 0.1);
+      padding: 1.2rem;
+      border-radius: 12px;
+      margin-bottom: 1.2rem;
+      border-left: 4px solid #48bb78;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(72, 187, 120, 0.3);
+    }
+
+    .response-section h4 {
+      color: #9ae6b4;
+      margin-bottom: 0.8rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .response-section p {
+      margin-bottom: 0.6rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .response-section strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .response-section hr {
+      border: none;
+      border-top: 1px solid rgba(72, 187, 120, 0.2);
+      margin-top: 0.8rem;
+    }
+
+    footer {
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(20px);
+      color: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      padding: 2rem;
+      margin-top: auto;
+      border-top: 1px solid rgba(138, 43, 226, 0.2);
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #8a2be2 30%, #00bfff 70%, transparent);
+    }
+
+    footer p {
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* Responsive scrollbar styling */
+    .table-container::-webkit-scrollbar {
+      height: 10px;
+    }
+
+    .table-container::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+      border-radius: 10px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #9b3bf0 0%, #10c9ff 100%);
+    }
+
+    @media (max-width: 768px) {
+      .navbar ul {
+        flex-direction: column;
+        gap: 0.8rem;
+        width: 100%;
+      }
+
+      .navbar li {
+        width: 100%;
+      }
+
+      .navbar li a {
+        width: 100%;
+        justify-content: center;
+      }
+
+      h1 {
+        font-size: 2rem;
+        padding: 1.5rem;
+      }
+
+      section {
+        padding: 0 1rem 2rem;
+      }
+
+      section>p {
+        font-size: 1rem;
+      }
+
+      .table-container {
+        padding: 1.5rem;
+        border-radius: 24px;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+
+      th,
+      td {
+        padding: 0.8rem 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      select {
+        min-width: 120px;
+        padding: 0.6rem 0.8rem;
+      }
+
+      textarea {
+        min-height: 70px;
+      }
+
+      button {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .table-container {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <nav class="navbar">
+    <ul>
+
+      <li><a href="/agent/dashboard">📞 Dashboard</a></li>
+      <li><a href="/agent/tickets">📋 My Tickets</a></li>
+      <li><a href="/agent/faq">❓ Manage FAQ</a></li>
+      <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+  </nav>
+  <h1>📋 Submitted Tickets</h1>
+</header>
+
+<section>
+  <p>Here you can see all tickets submitted by users:</p>
+
+  <div class="table-container">
+    <table border="0" cellpadding="0" cellspacing="0">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Submitted By</th>
+        <th>Created At</th>
+        <th>Action</th>
+        <th>Response</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="ticket : ${tickets}">
+        <td th:text="${ticket.id}"></td>
+        <td th:text="${ticket.title}"></td>
+        <td th:text="${ticket.description}"></td>
+        <td th:text="${ticket.category}"></td>
+        <td th:text="${ticket.status}"></td>
+        <td th:text="${ticket.user.username}"></td>
+        <td th:text="${ticket.createdAt}"></td>
+        <td>
+          <form th:action="@{'/tickets/update-status/' + ${ticket.id}}" method="post"
+                th:id="'statusForm-' + ${ticket.id}">
+            <select name="status" required th:id="'status-' + ${ticket.id}"
+                    th:onchange="'checkStatus(' + ${ticket.id} + ')'">
+              <option value="Open" th:selected="${ticket.status == 'Open'}">Open</option>
+              <option value="In Progress" th:selected="${ticket.status == 'In Progress'}">In
+                Progress</option>
+              <option value="Resolved" th:selected="${ticket.status == 'Resolved'}">Resolved
+              </option>
+              <option value="Closed" th:selected="${ticket.status == 'Closed'}">Closed</option>
+            </select>
+            <button type="submit"
+                    th:onclick="'return validateStatus(' + ${ticket.id} + ')'">Update</button>
+          </form>
+        </td>
+        <td>
+          <div th:if="${ticket.responses != null and #lists.size(ticket.responses) > 0}"
+               class="response-section">
+            <h4>Agent Response:</h4>
+            <p><strong>Agent:</strong> <span th:text="${ticket.responses[0].agent.username}"></span>
+            </p>
+            <p><strong>Response:</strong> <span
+                    th:text="${ticket.responses[0].responseText}"></span></p>
+            <p><strong>Timestamp:</strong> <span th:text="${ticket.responses[0].createdAt}"></span>
+            </p>
+            <hr />
+          </div>
+
+          <form th:action="@{'/tickets/respond/' + ${ticket.id}}" method="post"
+                th:id="'responseForm-' + ${ticket.id}">
+            <label>Status:</label>
+            <select name="action" required th:id="'action-' + ${ticket.id}">
+              <option value="In Progress" th:selected="${ticket.status == 'In Progress'}">In
+                Progress</option>
+              <option value="Resolved" th:selected="${ticket.status == 'Resolved'}">Resolved
+              </option>
+              <option value="Closed" th:selected="${ticket.status == 'Closed'}">Closed</option>
+            </select>
+            <br><br>
+            <label>Response:</label>
+            <textarea name="responseText" th:id="'responseText-' + ${ticket.id}" rows="2"
+                      placeholder="Type your response..." required></textarea>
+            <br>
+            <button type="submit" th:onclick="'return validateResponse(' + ${ticket.id} + ')'">Send
+              & Update</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2025 Customer Support System. All Rights Reserved.</p>
+</footer>
+
+<script>
+  function checkStatus(ticketId) {
+    const statusSelect = document.getElementById('status-' + ticketId);
+    const status = statusSelect.value;
+
+    // Prevent the agent from responding if the status is still "Open"
+    const responseText = document.getElementById('responseText-' + ticketId);
+    const submitButton = document.querySelector(`#responseForm-${ticketId} button[type="submit"]`);
+
+    if (status === 'Open') {
+      responseText.disabled = true; // Disable the response textarea
+      submitButton.disabled = true; // Disable the submit button
+    } else {
+      responseText.disabled = false; // Enable the response textarea
+      submitButton.disabled = false; // Enable the submit button
+    }
+  }
+
+  function validateStatus(ticketId) {
+    const statusSelect = document.getElementById('status-' + ticketId);
+    const selectedStatus = statusSelect.value;
+
+    // Prevent submission if the status is not changed from "Open"
+    if (selectedStatus === 'Open') {
+      alert('Please update the status before responding');
+      return false;
+    }
+    return true;
+  }
+
+  function validateResponse(ticketId) {
+    const responseText = document.getElementById('responseText-' + ticketId).value.trim();
+    const actionSelect = document.getElementById('action-' + ticketId);
+    const selectedAction = actionSelect.value;
+
+    // Validate if response text is not empty
+    if (responseText.length === 0) {
+      alert('Please provide a response text');
+      return false;
+    }
+
+    // Validate if a status is selected
+    if (!selectedAction) {
+      alert('Please select a status for the ticket');
+      return false;
+    }
+
+    return true;
+  }
+</script>
+
+</body>
+
+</html>
